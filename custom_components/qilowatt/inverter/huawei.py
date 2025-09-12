@@ -113,8 +113,29 @@ class HuaweiInverter(BaseInverter):
         inverter_active_power = self.get_state_float("inverter_active_power")
         # Get grid power directly from the sensor
         power_meter_active_power = self.get_state_float("power_meter_active_power")
-        # Load power is inverter output minus grid power - only calculate if both values are available
-        load_power_total = (inverter_active_power - power_meter_active_power) if (inverter_active_power is not None and power_meter_active_power is not None) else None
+        
+        # Get individual phase powers (raw values, negative means export)
+        power_a = self.get_state_float("power_meter_phase_a_active_power")
+        power_b = self.get_state_float("power_meter_phase_b_active_power")
+        power_c = self.get_state_float("power_meter_phase_c_active_power")
+        
+        # Calculate load power with new logic
+        if inverter_active_power is not None:
+            # Check if all phases are available and positive (exporting)
+            if (power_a is not None and power_a > 0 and
+                power_b is not None and power_b > 0 and
+                power_c is not None and power_c > 0):
+                # All phases exporting - use smallest positive (smallest export) phase * 3
+                smallest_export = min(power_a, power_b, power_c)
+                load_power_total = inverter_active_power - (3 * smallest_export)
+            elif power_meter_active_power is not None:
+                # Fallback to current calculation
+                load_power_total = inverter_active_power - power_meter_active_power
+            else:
+                load_power_total = None
+        else:
+            load_power_total = None
+            
         load_power = [load_power_total]
         
         # Use fixed load current values
