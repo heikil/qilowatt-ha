@@ -119,7 +119,7 @@ class HuaweiInverter(BaseInverter):
         power_b = self.get_state_float("power_meter_phase_b_active_power")
         power_c = self.get_state_float("power_meter_phase_c_active_power")
         
-        # Calculate load power with new logic
+        # Calculate load power with proper inversion logic
         if inverter_active_power is not None:
             # Check if all phases are available and positive (exporting)
             if (power_a is not None and power_a > 0 and
@@ -127,10 +127,10 @@ class HuaweiInverter(BaseInverter):
                 power_c is not None and power_c > 0):
                 # All phases exporting - use smallest positive (smallest export) phase * 3
                 smallest_export = min(power_a, power_b, power_c)
-                load_power_total = inverter_active_power - (3 * smallest_export)
+                load_power_total = (inverter_active_power - (3 * smallest_export)) * -1
             elif power_meter_active_power is not None:
                 # Fallback to current calculation
-                load_power_total = inverter_active_power - power_meter_active_power
+                load_power_total = (inverter_active_power - power_meter_active_power) * -1
             else:
                 load_power_total = None
         else:
