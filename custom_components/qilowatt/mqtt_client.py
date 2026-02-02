@@ -132,6 +132,11 @@ class MQTTClient:
             _LOGGER.debug("MQTT client not connected, skipping data update")
             return
 
+        # Check if inverter has coherent data before sending
+        if not self.inverter.is_data_ready():
+            _LOGGER.debug("Inverter data not ready, skipping data update")
+            return
+
         # Fetch latest data from the inverter
         energy_data = self.inverter.get_energy_data()
         metrics_data = self.inverter.get_metrics_data()
@@ -139,3 +144,4 @@ class MQTTClient:
         # Set data in the qilowatt client
         self.qw_device.set_energy_data(energy_data)
         self.qw_device.set_metrics_data(metrics_data)
+

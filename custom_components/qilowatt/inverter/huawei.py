@@ -50,6 +50,19 @@ class HuaweiInverter(BaseInverter):
         if state and state.state not in ("unknown", "unavailable", "", None):
             return str(state.state)
         return default
+
+    def is_data_ready(self) -> bool:
+        """Check if all critical sensors have valid data."""
+        # Critical power meter sensors
+        power_a = self.get_state_float("power_meter_phase_a_active_power")
+        power_b = self.get_state_float("power_meter_phase_b_active_power")
+        power_c = self.get_state_float("power_meter_phase_c_active_power")
+        
+        # Critical battery sensor
+        battery_power = self.get_state_float("batteries_charge_discharge_power")
+        
+        # All critical values must be present
+        return all(v is not None for v in [power_a, power_b, power_c, battery_power])
         
     def get_energy_data(self):
         """Retrieve ENERGY data."""

@@ -19,3 +19,12 @@ class BaseInverter(ABC):
     def get_metrics_data(self):
         """Retrieve METRICS data."""
         pass
+
+    @abstractmethod
+    def is_data_ready(self) -> bool:
+        """Check if all critical sensors have valid data.
+        
+        Returns True only when all required sensor values are available,
+        ensuring we don't send incomplete data to the MQTT broker.
+        """
+        pass
